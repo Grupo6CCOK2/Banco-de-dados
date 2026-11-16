@@ -59,13 +59,14 @@ CREATE TABLE itemServico (
     FOREIGN KEY (Agendamento_idAgendamento) REFERENCES Agendamento(idAgendamento),
     FOREIGN KEY (Servico_idServico) REFERENCES Servico(idServico)
 );
-
 -- tipo_usuario: 0 = Cliente, 1 = Funcionário, 2 = Administrador
 INSERT INTO Usuario (idUsuario, nome, sobrenome, email, telefone, senha, ativo, dataCadastro, dt_nascimento, tipo_usuario) VALUES
 (1, 'Ana', 'Silva', 'ana.silva@email.com', '11988887777', 'senha123', 1, '2026-01-10 10:00:00', '1990-05-15', 0), 
 (2, 'Carlos', 'Oliveira', 'carlos.oli@email.com', '11977776666', 'senha456', 1, '2026-01-12 11:30:00', '1985-08-20', 1), 
 (3, 'Mariana', 'Souza', 'mariana.souza@email.com', '11966665555', 'senha789', 1, '2026-01-15 14:20:00', '1992-12-01', 0), 
-(4, 'Fred', 'Admin', 'fred.admin@email.com', '11955554444', 'admin123', 1, '2026-01-01 08:00:00', '1980-03-10', 2);
+(4, 'Fred', 'Admin', 'fred.admin@email.com', '11955554444', 'admin123', 1, '2026-01-01 08:00:00', '1980-03-10', 2),
+(5, 'Juliana', 'Lima', 'juliana.lima@email.com', '11944443333', 'senha999', 1, '2026-02-01 09:00:00', '1988-04-12', 1),
+(6, 'Marcos', 'Santos', 'marcos.santos@email.com', '11933332222', 'senha333', 1, '2026-02-10 14:00:00', '1995-11-25', 0);
 
 INSERT INTO Dependentes (idDependentes, nome, parentesco, Usuario_idUsuario) VALUES
 (1, 'Lucas Silva', 'Filho', 1),
@@ -78,15 +79,22 @@ INSERT INTO Servico (idServico, tipoServico, valor) VALUES
 
 INSERT INTO Servico_func (Usuario_idUsuario, Servico_idServico, tempo_duracao) VALUES
 (2, 1, '00:45:00'), 
-(2, 3, '01:00:00');
+(2, 3, '01:00:00'),
+(5, 2, '00:30:00');
+
 
 INSERT INTO Agendamento (idAgendamento, data, horario, status, Dependentes_idDependentes, Dependentes_Usuario_idUsuario, Usuario_idUsuario) VALUES
 (1, '2026-03-20', '14:00:00', 'Confirmado', NULL, NULL, 1),
-(2, '2026-03-20', '10:30:00', 'Pendente', 1, 1, 1);     
+(2, '2026-03-20', '10:30:00', 'Pendente', 1, 1, 1),      
+(3, '2026-03-20', '15:30:00', 'Confirmado', NULL, NULL, 6),
+(4, '2026-03-20', '17:00:00', 'Confirmado', 2, 3, 3);
 
 INSERT INTO itemServico (Agendamento_idAgendamento, Servico_idServico, preco_unitario) VALUES
 (1, 1, 50.00), 
-(2, 2, 30.00);
+(2, 2, 30.00),
+(3, 1, 50.00), 
+(4, 3, 120.00);
+
 
 -- quais são todos os agendamentos realizados, quem foi o cliente que marcou, qual serviço foi escolhido e qual funcionário está associado a esse serviço?
 SELECT Agendamento.idAgendamento,
@@ -123,7 +131,7 @@ JOIN Dependentes AS dependente
     AND Agendamento.Dependentes_Usuario_idUsuario = dependente.Usuario_idUsuario
 JOIN Usuario AS titular 
     ON dependente.Usuario_idUsuario = titular.idUsuario
-WHERE Agendamento.Dependentes_idDependentes;
+WHERE Agendamento.Dependentes_idDependentes IS NOT NULL;
 
 -- esse mostra todos os atendimentos marcados para um dia específico (nesse caso é o dia 2026-03-20),
 -- mostrando tanto os agendamentos feitos pelos próprios titulares quanto os feitos para os dependentes
@@ -148,3 +156,29 @@ JOIN itemServico
 JOIN Servico AS servico 
     ON itemServico.Servico_idServico = servico.idServico 
 WHERE agendamento.data = '2026-03-20';
+
+-- esse select mostra todos os agendamentos que o funcionario tem naquele dia, tanto de titulares, tanto de dependentes 
+SELECT agendamento.idAgendamento,
+    agendamento.data,
+    agendamento.horario,
+    agendamento.status,
+    COALESCE(dependente.nome, titular.nome) AS cliente_atendido,
+    CASE 
+        WHEN agendamento.Dependentes_idDependentes IS NOT NULL THEN 'Dependente'
+        ELSE 'Titular'
+    END AS tipo_cliente,
+    servico.tipoServico
+FROM Agendamento AS agendamento
+JOIN Usuario AS titular 
+    ON agendamento.Usuario_idUsuario = titular.idUsuario
+LEFT JOIN Dependentes AS dependente 
+    ON agendamento.Dependentes_idDependentes = dependente.idDependentes 
+    AND agendamento.Dependentes_Usuario_idUsuario = dependente.Usuario_idUsuario
+JOIN itemServico 
+    ON agendamento.idAgendamento = itemServico.Agendamento_idAgendamento
+JOIN Servico AS servico 
+    ON itemServico.Servico_idServico = servico.idServico
+JOIN Servico_func 
+    ON servico.idServico = Servico_func.Servico_idServico
+WHERE Servico_func.Usuario_idUsuario = 2
+  AND agendamento.data = '2026-03-20';
