@@ -7,11 +7,17 @@ CREATE TABLE Usuario (
     sobrenome VARCHAR(45) NOT NULL,
     email VARCHAR(45) NOT NULL UNIQUE,
     telefone VARCHAR(11),
-    senha VARCHAR(45) NOT NULL,
+    senha VARCHAR(60) NOT NULL,
     ativo TINYINT(1) DEFAULT 1,
     dataCadastro DATETIME,
     dt_nascimento DATE,
     tipo_usuario TINYINT(1)
+);
+
+CREATE TABLE Sessao (
+	idSessao INT AUTO_INCREMENT PRIMARY KEY,
+    Usuario_idUsuario INT NOT NULL,
+    Ativa BOOLEAN NOT NULL
 );
 
 CREATE TABLE Funcionario (
@@ -73,22 +79,23 @@ CREATE TABLE itemServico (
 );
 
 
+-- Senhas originais (que agora viraram hash com o BCrypt): Ana=senha123, Carlos=senha456, Mariana=senha789, Fred=admin123, Juliana=senha999, Marcos=senha333
 INSERT INTO Usuario
 (idUsuario, nome, sobrenome, email, telefone, senha, ativo,
  dataCadastro, dt_nascimento, tipo_usuario)
 VALUES
 (1, 'Ana', 'Silva', 'ana.silva@email.com', '11988887777',
- 'senha123', 1, '2026-01-10 10:00:00', '1990-05-15', 0),
+ '$2a$10$/30HJw6DU8UXCUhlVUy82eln74VRC7ZfbBOEfWYAOBOfIO2zTXWv.', 1, '2026-01-10 10:00:00', '1990-05-15', 0),
 (2, 'Carlos', 'Oliveira', 'carlos.oli@email.com', '11977776666',
- 'senha456', 1, '2026-01-12 11:30:00', '1985-08-20', 1),
+ '$2a$10$76zz6iX4YB0gszKQne43K.3psfWsRu8IspyBOnamwAOBYtUr.I2ia', 1, '2026-01-12 11:30:00', '1985-08-20', 1),
 (3, 'Mariana', 'Souza', 'mariana.souza@email.com', '11966665555',
- 'senha789', 1, '2026-01-15 14:20:00', '1992-12-01', 0),
+ '$2a$10$d9vudfyKiFju5F/WANzurObN/fTuJn/nF87mu0XivIXgmO.6isGvW', 1, '2026-01-15 14:20:00', '1992-12-01', 0),
 (4, 'Fred', 'Admin', 'fred.admin@email.com', '11955554444',
- 'admin123', 1, '2026-01-01 08:00:00', '1980-03-10', 2),
+ '$2a$10$jB3/ccpHyt1IsYlQCxpcl.gPyDrKYTV3KKrlyycyU/udT8jVR.b5y', 1, '2026-01-01 08:00:00', '1980-03-10', 2),
 (5, 'Juliana', 'Lima', 'juliana.lima@email.com', '11944443333',
- 'senha999', 1, '2026-02-01 09:00:00', '1988-04-12', 1),
+ '$2a$10$RjTmqO3DBPdw5LF9q1bLRepLHJq1tIoc/COLV.mIbptnOrTz3k1mK', 1, '2026-02-01 09:00:00', '1988-04-12', 1),
 (6, 'Marcos', 'Santos', 'marcos.santos@email.com', '11933332222',
- 'senha333', 1, '2026-02-10 14:00:00', '1995-11-25', 0);
+ '$2a$10$kJkcKD1Tf2DFRI9csxY5f.wm.HGEZ5SovSh6xGDCpqtgijrHXS9Mi', 1, '2026-02-10 14:00:00', '1995-11-25', 0);
 
 INSERT INTO Funcionario (idFuncionario, Usuario_idUsuario)
 VALUES (1, 2), (2, 5);
@@ -248,3 +255,4 @@ JOIN Servico_func AS sf
 JOIN Servico AS s
     ON sf.Servico_idServico = s.idServico
 WHERE f.idFuncionario = 2;
+																																																															
